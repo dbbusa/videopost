@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const User = require('./Model/user');
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken');
+const auth = require('./verifyToken');
 const router = express.Router();
 router.use(bodyParser.urlencoded({ extended: true }));
 router.use(express.json());
@@ -31,9 +32,17 @@ router.post("/login", async (req, res) => {
             return res.send("Invalid Password Try Again...")
         else{
             const token = await jwt.sign({ _id: user._id }, "privatekey");
+            res.header("auth-token",token);
             res.send(token);
         }
     } 
+});
+router.get("/users",auth,async (req, res) => {
+    // const user = await User.find();
+    res.send("Login Successfully Done..!!");
+});
+router.get("/bills", async (req, res) => {
+    res.send("Please Login..");
 });
 
 
