@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const User = require('./Model/user');
+const Video = require('./Model/video');
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken');
 const auth = require('./verifyToken');
@@ -21,6 +22,7 @@ router.post("/register", async (req, res) => {
     res.send("Registerd Successfully");
 });
 
+
 // For login User
 router.post("/login", async (req, res) => {
     const user = await User.findOne({ username: req.body.username});
@@ -37,6 +39,40 @@ router.post("/login", async (req, res) => {
         }
     } 
 });
+// for Video Post
+router.post("/video", auth,async (req, res) => {
+    const video = new Video({
+        title: req.body.title,
+        desc: req.body.desc,
+        posted_by: req.body.posted_by,
+        url: req.body.url,
+        likes: req.body.likes,
+        cat: req.body.cat
+    });
+    try {
+        await video.save();
+        res.send("Video Added Successfully");
+    } catch (error) {
+        var err = JSON.parse('{"errors":[]}');
+        for (var key in error.errors)
+        switch (key) {
+            case "title":
+                err['errors'].push({"Key":key,"message":error.errors.title.message});
+                break;
+            case "desc":
+                err['errors'].push({ "Key": key, "message": error.errors.desc.message });
+                break;
+            case "posted_by":
+                err['errors'].push({ "Key": key, "message": error.errors.posted_by.message });
+                break;
+            case "url":
+                err['errors'].push({ "Key": key, "message": error.errors.url.message });
+                break;
+        }
+        res.send(err);
+    }
+});
+
 router.get("/users",auth,async (req, res) => {
     // const user = await User.find();
     res.send("Login Successfully Done..!!");
