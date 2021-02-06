@@ -29,11 +29,11 @@ router.post("/login", async (req, res) => {
     if (!user)
         return res.send("User Not Found..!!");
     else{
-        const isValid = await bcrypt.compare(req.body.password,user.password);
-        if (!isValid)
-            return res.send("Invalid Password Try Again...")
-        else{
-            const token = await jwt.sign({ _id: user._id }, "privatekey");
+            const isValid = await bcrypt.compare(req.body.password,user.password);
+            if (!isValid)
+                return res.send("Invalid Password Try Again...")
+            else{
+                const token = await jwt.sign({ _id: user._id }, "privatekey");
             res.header("auth-token",token);
             res.send(token);
         }
@@ -72,14 +72,13 @@ router.post("/video", auth,async (req, res) => {
         res.send(err);
     }
 });
-
-router.get("/users",auth,async (req, res) => {
-    // const user = await User.find();
-    res.send("Login Successfully Done..!!");
+router.delete('/video/:id', auth, async (req, res) => {
+    try {
+        await Video.deleteOne({ _id: req.params.id });
+        res.send("Video Removed");
+    } catch (error) {
+        res.status(404).send({ error: "Video Not Found" });
+    }
 });
-router.get("/bills", async (req, res) => {
-    res.send("Please Login..");
-});
-
 
 module.exports = router;
