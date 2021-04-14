@@ -40,9 +40,9 @@ router.post("/login", async (req, res) => {
     } 
 });
 // for Video Get
-router.get("/video",async(req, res) => {
+router.get("/video", auth,async(req, res) => {
     const video = await Video.find();
-    res.send(video);
+    res.send(book);
 });
 
 // for Video Post
