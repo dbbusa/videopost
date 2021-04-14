@@ -39,6 +39,12 @@ router.post("/login", async (req, res) => {
         }
     } 
 });
+// for Video Get
+router.get("/video",async(req, res) => {
+    const video = await Video.find();
+    res.send(video);
+});
+
 // for Video Post
 router.post("/video", auth,async (req, res) => {
     const video = new Video({
