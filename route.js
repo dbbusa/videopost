@@ -1,5 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+var cors = require('cors');
 const User = require('./Model/user');
 const Video = require('./Model/video');
 const bcrypt = require('bcryptjs')
@@ -8,9 +9,10 @@ const auth = require('./verifyToken');
 const router = express.Router();
 router.use(bodyParser.urlencoded({ extended: true }));
 router.use(express.json());
+router.use(cors())
 
 // For register User
-router.post("/register", async (req, res) => {
+router.post("/register", async (req, res,next) => {
     var saltkey = await bcrypt.genSalt(10);
     var hasedPass = await bcrypt.hash(req.body.password, saltkey);
     const user = new User({
@@ -19,12 +21,12 @@ router.post("/register", async (req, res) => {
 
     });
     await user.save();
-    res.send("Registerd Successfully");
+    res.json({"message":"Registerd Successfully"});
 });
 
 
 // For login User
-router.post("/login", async (req, res) => {
+router.post("/login", async (req, res,next) => {
     const user = await User.findOne({ username: req.body.username});
     if (!user)
         return res.send("User Not Found..!!");
@@ -34,19 +36,19 @@ router.post("/login", async (req, res) => {
                 return res.send("Invalid Password Try Again...")
             else{
                 const token = await jwt.sign({ _id: user._id }, "privatekey");
-            res.header("auth-token",token);
-            res.send(token);
+            // res.header("authtoken",token);
+            res.send({token});
         }
     } 
 });
 // for Video Get
-router.get("/video", auth,async(req, res) => {
+router.get("/video",auth,async(req, res,next) => {
     const video = await Video.find();
-    res.send(book);
+    res.send(video);
 });
 
 // for Video Post
-router.post("/video", auth,async (req, res) => {
+router.post("/video", auth,async (req, res, next) => {
     const video = new Video({
         title: req.body.title,
         desc: req.body.desc,
@@ -57,7 +59,7 @@ router.post("/video", auth,async (req, res) => {
     });
     try {
         await video.save();
-        res.send("Video Added Successfully");
+        res.json({"message":"Video Added Successfully"});
     } catch (error) {
         var err = JSON.parse('{"errors":[]}');
         for (var key in error.errors)
@@ -78,13 +80,29 @@ router.post("/video", auth,async (req, res) => {
         res.send(err);
     }
 });
-router.delete('/video/:id', auth, async (req, res) => {
+router.delete('/video/:id', auth, async (req, res,next) => {
     try {
         await Video.deleteOne({ _id: req.params.id });
-        res.send("Video Removed");
+        res.send({"message":"Video Removed"});
     } catch (error) {
         res.status(404).send({ error: "Video Not Found" });
     }
 });
-
+router.patch('/video/:id',async(req,res)=>{
+    try {
+        const video =await Video.findOne({_id:req.params.id});
+        video.title = req.body.title;
+        video.desc = req.body.desc;
+        video.posted_by = req.body.posted_by;
+        video.url = req.body.url;
+        video.likes = req.body.likes;
+        video.cat = req.body.cat;
+        console.log(req.params.id);
+        await video.save();
+        // res.send(video);
+        res.send({"message":"record updated."});
+    } catch (error) {
+        res.status(404).send(error);
+    }
+});
 module.exports = router;
